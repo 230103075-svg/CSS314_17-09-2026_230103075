@@ -1,0 +1,14 @@
+section,threads_P,metric,value
+oversubscription,1,spawn_join_ms,0.166
+oversubscription,2,spawn_join_ms,0.252
+oversubscription,4,spawn_join_ms,0.495
+oversubscription,8,spawn_join_ms,1.263
+oversubscription,16,spawn_join_ms,4.109
+oversubscription,32,spawn_join_ms,15.919
+oversubscription,64,spawn_join_ms,20.925
+saturation,1,workload_ms,90.0
+saturation,2,workload_ms,66.3
+saturation,4,workload_ms,139.7
+saturation,8,workload_ms,257.4
+saturation,16,workload_ms,505.5
+saturation,32,workload_ms,975.5

@@ -1,0 +1,50 @@
+--- Run 1 ---
+[Worker] Logical Rank: 2 | Thread: ForkJoinPool-1-worker-1 (OS ID: 19)
+[Master] Logical Rank: 0 | Thread: ForkJoinPool-1-worker-3 (OS ID: 21)
+[Worker] Logical Rank: 3 | Thread: ForkJoinPool-1-worker-4 (OS ID: 22)
+[Worker] Logical Rank: 1 | Thread: ForkJoinPool-1-worker-2 (OS ID: 20)
+--- Run 2 ---
+[Worker] Logical Rank: 2 | Thread: ForkJoinPool-2-worker-1 (OS ID: 23)
+[Worker] Logical Rank: 3 | Thread: ForkJoinPool-2-worker-1 (OS ID: 23)
+[Master] Logical Rank: 0 | Thread: ForkJoinPool-2-worker-2 (OS ID: 24)
+[Worker] Logical Rank: 1 | Thread: ForkJoinPool-2-worker-1 (OS ID: 23)
+--- Run 3 ---
+[Worker] Logical Rank: 2 | Thread: ForkJoinPool-3-worker-1 (OS ID: 26)
+[Worker] Logical Rank: 3 | Thread: ForkJoinPool-3-worker-1 (OS ID: 26)
+[Worker] Logical Rank: 1 | Thread: ForkJoinPool-3-worker-2 (OS ID: 27)
+[Master] Logical Rank: 0 | Thread: ForkJoinPool-3-worker-3 (OS ID: 28)
+--- Run 4 ---
+[Worker] Logical Rank: 2 | Thread: ForkJoinPool-4-worker-1 (OS ID: 30)
+[Worker] Logical Rank: 3 | Thread: ForkJoinPool-4-worker-1 (OS ID: 30)
+[Worker] Logical Rank: 1 | Thread: ForkJoinPool-4-worker-2 (OS ID: 31)
+[Master] Logical Rank: 0 | Thread: ForkJoinPool-4-worker-2 (OS ID: 31)
+--- Run 5 ---
+[Worker] Logical Rank: 2 | Thread: ForkJoinPool-5-worker-1 (OS ID: 34)
+[Worker] Logical Rank: 3 | Thread: ForkJoinPool-5-worker-1 (OS ID: 34)
+[Master] Logical Rank: 0 | Thread: ForkJoinPool-5-worker-3 (OS ID: 36)
+[Worker] Logical Rank: 1 | Thread: ForkJoinPool-5-worker-1 (OS ID: 34)
+--- Run 6 ---
+[Worker] Logical Rank: 2 | Thread: ForkJoinPool-6-worker-1 (OS ID: 37)
+[Worker] Logical Rank: 3 | Thread: ForkJoinPool-6-worker-1 (OS ID: 37)
+[Worker] Logical Rank: 1 | Thread: ForkJoinPool-6-worker-2 (OS ID: 38)
+[Master] Logical Rank: 0 | Thread: ForkJoinPool-6-worker-2 (OS ID: 38)
+--- Run 7 ---
+[Worker] Logical Rank: 2 | Thread: ForkJoinPool-7-worker-1 (OS ID: 41)
+[Worker] Logical Rank: 3 | Thread: ForkJoinPool-7-worker-1 (OS ID: 41)
+[Worker] Logical Rank: 1 | Thread: ForkJoinPool-7-worker-2 (OS ID: 42)
+[Master] Logical Rank: 0 | Thread: ForkJoinPool-7-worker-2 (OS ID: 42)
+--- Run 8 ---
+[Worker] Logical Rank: 2 | Thread: ForkJoinPool-8-worker-1 (OS ID: 45)
+[Worker] Logical Rank: 3 | Thread: ForkJoinPool-8-worker-1 (OS ID: 45)
+[Worker] Logical Rank: 1 | Thread: ForkJoinPool-8-worker-2 (OS ID: 46)
+[Master] Logical Rank: 0 | Thread: ForkJoinPool-8-worker-2 (OS ID: 46)
+--- Run 9 ---
+[Worker] Logical Rank: 2 | Thread: ForkJoinPool-9-worker-1 (OS ID: 49)
+[Worker] Logical Rank: 3 | Thread: ForkJoinPool-9-worker-1 (OS ID: 49)
+[Worker] Logical Rank: 1 | Thread: ForkJoinPool-9-worker-2 (OS ID: 50)
+[Master] Logical Rank: 0 | Thread: ForkJoinPool-9-worker-2 (OS ID: 50)
+--- Run 10 ---
+[Worker] Logical Rank: 2 | Thread: ForkJoinPool-10-worker-1 (OS ID: 53)
+[Worker] Logical Rank: 3 | Thread: ForkJoinPool-10-worker-1 (OS ID: 53)
+[Worker] Logical Rank: 1 | Thread: ForkJoinPool-10-worker-2 (OS ID: 54)
+[Master] Logical Rank: 0 | Thread: ForkJoinPool-10-worker-2 (OS ID: 54)

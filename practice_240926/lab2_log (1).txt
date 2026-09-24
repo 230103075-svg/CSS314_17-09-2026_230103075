@@ -1,0 +1,28 @@
+[0.001s][warning][os,container] Cgroup memory controller path at '/sys/fs/cgroup' seems to have moved to '/../../jupyter-children', detected limits won't be accurate
+[0.001s][warning][os,container] Cgroup cpu controller path at '/sys/fs/cgroup' seems to have moved to '/../../jupyter-children', detected limits won't be accurate
+=== ENVIRONMENT ===
+Java 21.0.12 | availableProcessors = 2 | N = 100000000
+
+[warm-up JIT]
+
+=== TASK 2.1: Race condition quantification (Variant A) ===
+P      Pi (computed)        Abs error     
+1      3.141592653590       6.333e-13     
+2      1.713295534706       1.428e+00     
+4      0.725004795529       2.417e+00     
+8      0.433994491582       2.708e+00     
+
+=== TASK 2.2: Critical-section overhead (N = 1,000,000) ===
+Serial baseline      : pi = 3.141592653590 | 20.66 ms
+synchronized, P = 2  : pi = 3.141592653590 | 47.49 ms | overhead +129.9%
+synchronized, P = 4  : pi = 3.141592653590 | 68.65 ms | overhead +232.3%
+
+=== TASK 2.3 / 2.4: Reduction strong scaling (5 trials, N = 100000000) ===
+P      Avg T(P) ms  Best ms      S(P)       E(P)       Pi              
+1      1483.4       1466.6       1.00       100.0    % 3.141592653590  
+2      809.9        795.8        1.83       91.6     % 3.141592653590  
+4      1047.1       769.9        1.42       35.4     % 3.141592653590  
+8      768.7        753.9        1.93       24.1     % 3.141592653590  
+16     764.9        752.2        1.94       12.1     % 3.141592653590  
+
+Written: lab2_results.csv

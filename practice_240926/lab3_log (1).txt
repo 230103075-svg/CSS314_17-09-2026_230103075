@@ -1,0 +1,34 @@
+[0.001s][warning][os,container] Cgroup memory controller path at '/sys/fs/cgroup' seems to have moved to '/../../jupyter-children', detected limits won't be accurate
+[0.001s][warning][os,container] Cgroup cpu controller path at '/sys/fs/cgroup' seems to have moved to '/../../jupyter-children', detected limits won't be accurate
+=== ENVIRONMENT ===
+Java 21.0.12 | availableProcessors = 2 | image 1920x1080 | max_iter 1000
+
+[warm-up JIT]
+
+=== TASK 3.1 / 3.4: STATIC schedule (default N/P blocks) ===
+P      run1       run2       run3       mean ms    imbalance 
+2      536.2      564.6      528.3      543.0      0.011     
+4      595.5      525.3      661.6      594.1      1.974     
+8      924.6      936.0      814.6      891.7      3.262     
+16     810.4      555.2      551.1      638.9      4.022     
+
+=== TASK 3.2: DYNAMIC sweep 4x4 (P x chunk), 3 runs per cell ===
+P      chunk    run1       run2       run3       mean ms    imbalance 
+2      1        551.4      529.6      538.7      539.9      0.047     
+2      16       534.2      538.1      526.0      532.8      0.010     
+2      64       555.6      543.8      569.4      556.3      0.085     
+2      256      628.3      629.9      626.0      628.1      0.431     
+4      1        528.8      541.3      528.6      532.9      0.418     
+4      16       565.3      869.9      973.5      802.9      0.037     
+4      64       831.3      842.1      556.7      743.4      0.659     
+4      256      646.3      634.2      631.8      637.4      2.395     
+8      1        552.5      530.2      539.7      540.8      0.149     
+8      16       532.8      547.5      531.6      537.3      0.344     
+8      64       571.0      553.5      545.2      556.6      1.883     
+8      256      632.3      632.6      636.0      633.6      4.828     
+16     1        537.0      732.3      849.4      706.2      0.288     
+16     16       946.8      840.8      761.5      849.7      0.335     
+16     64       569.2      534.4      561.8      555.1      3.956     
+16     256      633.2      652.0      624.9      636.7      9.656     
+
+Written: lab3_results.csv
