@@ -1,0 +1,32 @@
+=== ENVIRONMENT ===
+N = 13075000 | omp_get_max_threads() = 2 | OpenMP 201511
+
+=== PHASE 2: SEQUENTIAL BASELINE (3 runs, run 1 discarded) ===
+Run 1: 5.1302 s
+Run 2: 4.8117 s
+Run 3: 4.9018 s
+T_seq = (run2 + run3)/2 = 4.8567 s | max steps = 688 | checksum = 65992696
+
+=== PHASE 3: OPENMP SCALING ===
+k      Run1(cold) Run2       Run3       Avg T_k    S_emp     S_theo    Delta   
+k=1    5.8836     5.4684     6.2749     5.8717     0.827     1.000     0.173   
+k=2    4.1003     4.0774     5.5089     4.7931     1.013     1.013     0.000   
+k=4    4.0169     3.9648     5.3508     4.6578     1.043     1.020     -0.023  
+k=8    3.9863     4.0334     5.0269     4.5302     1.072     1.023     -0.049  
+k=16   4.3247     3.9456     4.6832     4.3144     1.126     1.025     -0.101  
+Derived parallel fraction p = 2 * [1 - 1/S_emp(2)] = 0.0262
+Amdahl ceiling S_max = 1/(1-p) = 1.03x
+
+=== PHASE 4A: FALSE SHARING (threads = 2) ===
+Variant 1 naive  hit_count[tid]++ : 3.5602 s | 3.67 M iter/s
+Variant 2 padded struct           : 3.8659 s | 3.38 M iter/s
+Penalty ratio (naive / padded)    : 0.92x | hits > 100 steps = 10534575
+
+=== PHASE 4B: LOOP SCHEDULING (threads = 2) ===
+static (default)   : 3.7581 s
+static, 1000       : 4.8544 s
+dynamic, 100       : 6.4866 s
+dynamic, 10000     : 6.3899 s
+guided             : 6.4397 s
+
+results.csv written.
