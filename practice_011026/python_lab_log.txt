@@ -1,0 +1,30 @@
+=== ENVIRONMENT ===
+Linux-6.6.122+-x86_64-with-glibc2.39
+Python 3.13.15 | NumPy 2.1.3 | Numba 0.61.2
+Hardware Threads Detected (NUMBA_NUM_THREADS): 2
+Threading layer: default
+
+=== CHALLENGE 1: Monte Carlo Pi - core speedometer & Amdahl's Law ===
+Threads    | Time (s)     | Pi           | Speedup    | Efficiency (%) 
+------------------------------------------------------------------------
+1          | 1.5274       | 3.141574     | 1.00      x | 100.0          
+2          | 1.4680       | 3.141745     | 1.04      x | 52.0           
+
+=== CHALLENGE 2: Mandelbrot - load imbalance & memory layout ===
+Row-Parallel Render Time   : 5.325 s
+Column-Parallel Render Time: 8.189 s
+Rows / Cols ratio          : 0.65x
+Saved image: mandelbrot_output.png
+
+=== CHALLENGE 3: Heat stencil - memory bandwidth wall ===
+float64                     :   0.992 s |   680.13 Megacells/sec
+float32                     :   0.859 s |   785.60 Megacells/sec
+float64 / float32 speedup   : 1.16x
+
+Stencil thread scaling (float64):
+float64, 1 thread(s)        :   1.264 s |   534.05 Megacells/sec
+    speedup vs 1 thread     : 1.00x
+float64, 2 thread(s)        :   1.122 s |   601.53 Megacells/sec
+    speedup vs 1 thread     : 1.13x
+
+Written: results.csv, mandelbrot_output.png
