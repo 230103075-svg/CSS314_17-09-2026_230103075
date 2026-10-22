@@ -1,0 +1,100 @@
+==============================================================================
+TASK 2 — PSEUDO-RANDOM GENERATOR STATE BOTTLENECK
+==============================================================================
+Student ID           : 230103075
+Operating System     : Windows 11
+CPU model            : Intel64 Family 6 Model 154 Stepping 3, GenuineIntel
+Logical cores        : 12
+Threads              : 4
+Sample points        : 40,000,000
+Batch per draw       : 500,000 samples
+Shared PRNG seed     : 2,301,030,750
+Independent seeds    : T0=2,301,030,750, T1=2,301,030,751, T2=2,301,030,752, T3=2,301,030,753
+Reference            : math.pi = 3.1415926535897931
+Timing method        : 3 timed runs each, median reported
+
+------------------------------------------------------------------------------
+1. SHARED PRNG, GUARDED BY A MUTEX
+------------------------------------------------------------------------------
+Computed pi          : 3.1416227999999999
+Absolute error       : 3.014641e-05
+Points inside circle : 31,416,228 of 40,000,000
+Wall time            : 479.061 ms
+Run spread           : min 471.530 ms, max 481.453 ms
+
+------------------------------------------------------------------------------
+2. INDEPENDENT PRNG PER THREAD, NO LOCK
+------------------------------------------------------------------------------
+Computed pi          : 3.1418656
+Absolute error       : 2.729464e-04
+Points inside circle : 31,418,656 of 40,000,000
+Wall time            : 266.130 ms
+Run spread           : min 256.395 ms, max 269.375 ms
+
+------------------------------------------------------------------------------
+3. WHY THE DRAWS ARE BATCHED
+------------------------------------------------------------------------------
+Taking the lock once per sample, measured over 200,000 samples:
+  measured            : 217.160 ms
+  per sample          : 1.086 us
+  extrapolated to 40,000,000 samples : 43432 ms (43.4 s)
+
+That is 91x slower than the batched shared run
+above. Both versions serialise the generator equally; the difference
+is 40,000,000 lock acquisitions instead of 80. Batching
+hides the lock overhead but cannot hide the serialisation, which is
+why section 1 is still the slower of the two real runs.
+
+==============================================================================
+DELIVERABLE
+==============================================================================
+                       |          Computed pi |    Abs. error |   Time (ms)
+------------------------------------------------------------------------------
+Shared PRNG            |    3.141622800000000 |  3.014641e-05 |     479.061
+Independent PRNG       |    3.141865600000000 |  2.729464e-04 |     266.130
+------------------------------------------------------------------------------
+
+SPEEDUP FROM ELIMINATING GENERATOR STATE LOCKING : 1.8001x
+  (shared 479.061 ms / independent 266.130 ms, 4 threads both)
+==============================================================================
+
+------------------------------------------------------------------------------
+ANALYSIS
+------------------------------------------------------------------------------
+A pseudo-random generator is a state machine. Each draw reads the
+current state, transforms it and writes it back, and the next draw
+depends on that write. Two threads drawing from one instance at the
+same time would interleave those read-modify-writes and corrupt the
+stream: repeated values, broken statistical properties, and a stream
+that is no longer reproducible from its seed.
+
+The mutex prevents that, correctly. What it cannot do is make the
+generator parallel. While one thread holds the lock, the other three
+are blocked, so generation proceeds at exactly single-thread speed no
+matter how many cores are available. Only the hit test runs in
+parallel, and that is the cheaper half of the work.
+
+Giving each thread its own generator removes the shared state
+entirely. There is nothing to lock because there is nothing shared:
+four generators advance four independent streams on four cores.
+Measured gain here: 1.80x.
+
+The gain is below the 4x that 4 threads might suggest. Generation is
+not the only cost: the hit test was already running in parallel in
+both versions, so only the generation half was ever serialised.
+Amdahl's Law applies directly here, with the lock defining the
+serial fraction.
+
+The seeds matter as much as the speed. Each thread is seeded
+(Student_ID * 10) + thread_index, so the four streams are distinct
+and the whole run is still reproducible: the same seeds give the same
+estimate on any machine. Seeding every thread identically would be
+the classic error, producing four copies of one stream and an answer
+with a quarter of the independent samples it appears to have.
+
+Both estimates land within 2.73e-04 of math.pi. Monte
+Carlo error falls as 1/sqrt(N), so 40,000,000 samples buy roughly
+1.58e-04 relative accuracy. The two differ from
+each other only because they consumed different random streams, which
+is expected and is not an error in either one.
+==============================================================================
