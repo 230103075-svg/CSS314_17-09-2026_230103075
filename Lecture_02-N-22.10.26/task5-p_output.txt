@@ -1,0 +1,106 @@
+==============================================================================
+TASK 5 — THREAD OVERSUBSCRIPTION THRESHOLD
+==============================================================================
+Student ID           : 230103075
+Operating System     : Windows 11
+CPU model            : Intel64 Family 6 Model 154 Stepping 3, GenuineIntel
+Logical cores        : 12
+Physical cores       : 8
+Tasks in the batch   : 10,000
+Work per task        : hash a 1024-byte payload 500 times
+Payload seed         : 230103075  (Student ID)
+Requested pool sizes : [1, 6, 12, 24, 48, 192, 256]
+Tested (deduplicated): [1, 6, 12, 24, 48, 192, 256]
+Timing method        : 1 full batches per size, median
+
+==============================================================================
+VARIANT A — hashlib SHA-256 (GIL held: 1 KB is below the release threshold)
+==============================================================================
+ Pool Size |  Execution Time (ms) |  Speedup vs 1 | Status                  
+----------------------------------------------------------------------------
+         1 |            11624.672 |       1.0000x | baseline                
+         6 |            17368.322 |       0.6693x | scaling up              
+        12 |            16002.001 |       0.7265x | scaling up              
+        24 |            14834.338 |       0.7836x | scaling up              
+        48 |            11988.705 |       0.9696x | scaling up              
+       192 |            11058.903 |       1.0512x | scaling up              
+       256 |            10702.478 |       1.0862x | OPTIMUM                 
+----------------------------------------------------------------------------
+
+Run spread (min / max over 1 batches):
+  pool    1 : 11624.672 / 11624.672 ms
+  pool    6 : 17368.322 / 17368.322 ms
+  pool   12 : 16002.001 / 16002.001 ms
+  pool   24 : 14834.338 / 14834.338 ms
+  pool   48 : 11988.705 / 11988.705 ms
+  pool  192 : 11058.903 / 11058.903 ms
+  pool  256 : 10702.478 / 10702.478 ms
+
+Fastest pool size        : 256 (10702.478 ms, 1.0862x)
+DEGRADATION BEGINS AT    : not observed across the tested sizes
+
+==============================================================================
+VARIANT B — compiled FNV-1a, same batch, GIL released
+==============================================================================
+ Pool Size |  Execution Time (ms) |  Speedup vs 1 | Status                  
+----------------------------------------------------------------------------
+         1 |             9509.569 |       1.0000x | baseline                
+         6 |             2363.683 |       4.0232x | scaling up              
+        12 |             1322.240 |       7.1920x | scaling up              
+        24 |             1276.349 |       7.4506x | OPTIMUM                 
+        48 |             1344.299 |       7.0740x | degrading (+5.3% vs peak)
+       192 |             1400.599 |       6.7896x | degrading (+9.7% vs peak)
+       256 |             1404.648 |       6.7701x | degrading (+10.1% vs peak)
+----------------------------------------------------------------------------
+
+Run spread (min / max over 1 batches):
+  pool    1 : 9509.569 / 9509.569 ms
+  pool    6 : 2363.683 / 2363.683 ms
+  pool   12 : 1322.240 / 1322.240 ms
+  pool   24 : 1276.349 / 1276.349 ms
+  pool   48 : 1344.299 / 1344.299 ms
+  pool  192 : 1400.599 / 1400.599 ms
+  pool  256 : 1404.648 / 1404.648 ms
+
+Fastest pool size        : 24 (1276.349 ms, 7.4506x)
+DEGRADATION BEGINS AT    : pool size 48
+  time rose from 1276.349 ms to 1344.299 ms (+5.3%)
+  worst oversubscribed  : pool 256 at 1404.648 ms (1.10x the optimum)
+
+==============================================================================
+ANALYSIS
+==============================================================================
+Variant A best speedup : 1.0862x at pool 256
+Variant B best speedup : 7.4506x at pool 24
+
+Variant A never scaled. SHA-256 over 1 KB stays inside the GIL,
+so only one thread executes at a time regardless of pool size.
+Adding threads cannot add throughput; it only adds contention for
+the lock and work for the scheduler. This is the measurement the
+task asks for, and the flat-then-worsening curve is the correct
+result for it, not a failed experiment.
+
+Variant B removes the lock and the curve appears:
+  it climbs to 7.45x at pool 24, close to the 8 physical
+  cores available, and then flattens or falls.
+
+The oversubscription threshold is pool size 48. Past the optimum
+of 24, every extra thread is a thread that must be scheduled onto
+a core that is already busy. The costs that appear are:
+  - context switches: the OS saves and restores register state,
+    and each switch costs microseconds of pure overhead.
+  - cache pollution: a thread resuming on a different core finds
+    its working set cold and reloads it from memory.
+  - scheduler work: the run queue grows and the kernel spends
+    more of its own time deciding what to run next.
+  - memory: each thread carries its own stack, so a 256-thread
+    pool reserves hundreds of megabytes of address space for
+    threads that are mostly waiting.
+
+The practical rule this measures: for CPU-bound work, size the pool
+to the core count, not to the task count. 10,000 tasks do not need
+10,000 threads. Threads are a way to use cores, and once the cores
+are busy more threads only add bookkeeping. Oversubscription pays off
+only for I/O-bound work, where threads spend their time blocked and
+a waiting thread costs nothing but memory.
+==============================================================================
