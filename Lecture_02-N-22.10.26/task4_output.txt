@@ -1,0 +1,112 @@
+==============================================================================
+TASK 4 — WORK STEALING & SCHEDULING UNDER SKEW
+==============================================================================
+Student ID          : 230103075
+Operating System    : Windows 11
+CPU model           : Intel64 Family 6 Model 154 Stepping 3, GenuineIntel
+Logical cores       : 12
+Workers             : 4
+Items               : 1000  (indices 0..999)
+Cost model          : 0.0001 * (i % 20) seconds
+Cost range          : 0.00 ms .. 1.90 ms  (ratio 19:1)
+Total serial work   : 950.000 ms
+Perfect split / 4  : 237.500 ms (the theoretical floor)
+Timing method       : 3 timed runs per strategy, median kept
+
+------------------------------------------------------------------------------
+CALIBRATION
+------------------------------------------------------------------------------
+Spin throughput     : 287.19 M iterations/sec (3.482 ns per iteration)
+Iterations for 0.1ms: 28,719
+Iterations for 1.9ms: 545,656
+Calibration check   : asked 1.000 ms, got 1.151 ms (+15.11%)
+
+------------------------------------------------------------------------------
+PREDICTED STATIC IMBALANCE (from the cost model alone)
+------------------------------------------------------------------------------
+  W0: items    0..249  ->  232.500 ms of work
+  W1: items  250..499  ->  242.500 ms of work
+  W2: items  500..749  ->  232.500 ms of work
+  W3: items  750..999  ->  242.500 ms of work
+  spread between the heaviest and lightest block: 10.000 ms
+  This is the imbalance the cost model alone predicts for static
+  scheduling, before the operating system has any say.
+
+==============================================================================
+STRATEGY A — STATIC CHUNK DISTRIBUTION
+==============================================================================
+Static, 4 equal contiguous blocks
+  total wall time   : 193.133 ms
+  worker finish (ms): W0=183.67  W1=192.99  W2=184.97  W3=190.58
+  items per worker  : W0=250  W1=250  W2=250  W3=250
+  first finisher    : 183.667 ms
+  last finisher     : 192.992 ms
+  COMPLETION DELTA  : 9.325 ms
+
+==============================================================================
+STRATEGY B — DYNAMIC / WORK-STEALING QUEUE
+==============================================================================
+Dynamic, chunk = 1
+  total wall time   : 191.067 ms
+  worker finish (ms): W0=190.48  W1=189.64  W2=190.14  W3=191.00
+  items per worker  : W0=245  W1=245  W2=268  W3=242
+  first finisher    : 189.635 ms
+  last finisher     : 191.002 ms
+  COMPLETION DELTA  : 1.367 ms
+
+Dynamic, chunk = 5
+  total wall time   : 191.055 ms
+  worker finish (ms): W0=187.74  W1=184.93  W2=190.94  W3=187.08
+  items per worker  : W0=225  W1=220  W2=290  W3=265
+  first finisher    : 184.926 ms
+  last finisher     : 190.936 ms
+  COMPLETION DELTA  : 6.011 ms
+
+==============================================================================
+SUMMARY
+==============================================================================
+Strategy             |  Total (ms) |  Delta (ms) |  vs Static |  over floor
+---------------------------------------------------------------------------
+A  Static blocks     |     193.133 |       9.325 |    1.0000x |     -18.68%
+B  Dynamic chunk=1   |     191.067 |       1.367 |    1.0108x |     -19.55%
+B  Dynamic chunk=5   |     191.055 |       6.011 |    1.0109x |     -19.56%
+---------------------------------------------------------------------------
+Theoretical floor (total work / 4) = 237.500 ms
+
+==============================================================================
+ANALYSIS
+==============================================================================
+Completion delta is the honest measure here. It is the time cores
+spend idle at the barrier waiting for the slowest worker, and it is
+exactly what a scheduler is supposed to drive to zero.
+
+  Static  delta : 9.325 ms
+  Dynamic delta : 1.367 ms (best of chunk 1 and 5)
+  Reduction     : 85.3%
+
+Predicted static delta from the cost model : 10.000 ms
+Measured static delta                      : 9.325 ms
+The two agree closely, which confirms the measured imbalance comes
+from how the work was divided and not from OS scheduling noise.
+
+Static scheduling fixes the assignment before the first item runs, so
+it can only be as good as its guess about cost. Here the cost repeats
+every 20 items and each block of 250 covers 12 and a half full cycles,
+so the blocks come out nearly, but not exactly, equal. Whatever
+imbalance remains is paid in full: a worker that finishes early cannot
+help, it just waits.
+
+Dynamic scheduling makes no guess. A worker that finishes early comes
+back for more, so the imbalance can only ever be as large as the last
+chunk still in flight. That is why chunk = 1 gives the tightest finish
+spread: the worst case is one item, 1.9 ms. Chunk = 5 claims five items
+per lock acquisition, trading a slightly looser spread for fewer trips
+through the shared queue.
+
+The cost of dynamic scheduling is that shared queue. Every chunk claim
+takes a lock, so chunk = 1 pays 1,000 lock acquisitions against chunk
+= 5's 200. When the items are cheap relative to that overhead, dynamic
+can lose on total time even while winning on the delta, which is the
+trade-off behind OpenMP's schedule(static) / schedule(dynamic, n) /
+schedule(guided) choice.
+==============================================================================
