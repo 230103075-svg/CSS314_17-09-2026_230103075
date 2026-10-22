@@ -1,0 +1,68 @@
+==============================================================================
+TASK 6 — ATOMIC CAS vs. OS MUTEX UNDER HEAVY CONTENTION
+==============================================================================
+Student ID          : 230103075
+Operating System    : Windows 11
+CPU model           : Intel64 Family 6 Model 154 Stepping 3, GenuineIntel
+Logical cores       : 12
+Threads             : 8
+Increments / thread : 1,000,000
+Expected final value: 8,000,000
+
+------------------------------------------------------------------------------
+1. PRIMITIVE 1 — OS MUTEX (threading.Lock)
+------------------------------------------------------------------------------
+Final value         : 8,000,000  CORRECT
+Execution time      : 1556.687 ms
+Throughput          : 5,139,119 ops/sec
+
+------------------------------------------------------------------------------
+2. PRIMITIVE 2 — HARDWARE ATOMIC CAS (LOCK CMPXCHG loop)
+------------------------------------------------------------------------------
+Final value         : 8,000,000  CORRECT
+Execution time      : 622.896 ms
+Throughput          : 12,843,242 ops/sec
+Failed CAS retries  : 11,442,414 (143.0% of successful ops)
+
+------------------------------------------------------------------------------
+3. SAME PRIMITIVES, ONE THREAD, NO CONTENTION
+------------------------------------------------------------------------------
+Mutex, 1 thread     : 190.925 ms for 1,000,000 ops (190.9 ns/op)
+CAS,   1 thread     : 8.592 ms for 1,000,000 ops (8.6 ns/op)
+Uncontended ratio   : 22.22x  (interpreter + lock cost, before contention)
+
+==============================================================================
+DELIVERABLE
+==============================================================================
+Primitive              |    Time (ms) |   Throughput (ops/sec)
+--------------------------------------------------------------
+Mutex (OS lock)        |     1556.687 |              5,139,119
+Atomic CAS             |      622.896 |             12,843,242
+--------------------------------------------------------------
+THROUGHPUT RATIO (CAS / Mutex) : 2.4991x
+==============================================================================
+
+------------------------------------------------------------------------------
+ANALYSIS
+------------------------------------------------------------------------------
+A mutex is a contract with the operating system. When the lock is
+taken, a contending thread is put to sleep and later woken, which
+costs a system call and a context switch, microseconds per handoff.
+Under heavy contention almost every acquisition is a handoff.
+
+CAS never sleeps. A single LOCK CMPXCHG instruction compares and
+swaps the value in one indivisible step; if another core won the
+race, the loop simply retries with the fresh value. The cost moves
+from the kernel into the cache: the 11,442,414 failed retries
+above are cores losing the race for the same cache line.
+
+Contended ratio 2.5x vs uncontended ratio 22.2x. The uncontended
+figure includes the Python interpreter overhead on the mutex side,
+since the CAS loop is compiled. What contention adds on top is the
+mutex's sleep/wake handoffs against CAS's cache-line retries.
+
+CAS is not free: under extreme contention the retry loop burns CPU
+while making no progress, and a sleeping mutex can be kinder to the
+rest of the system. For a single hot counter, however, an atomic
+is the right tool, and it is what AtomicInteger in Java uses.
+==============================================================================
