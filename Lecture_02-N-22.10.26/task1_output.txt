@@ -1,0 +1,43 @@
+======================================================================
+TASK 1 — HARDWARE PROBE & SERIAL BASELINE
+======================================================================
+Student ID          : 230103075
+Operating System    : Windows 11
+Platform detail     : Windows-11-10.0.26200-SP0
+Machine / arch      : AMD64
+CPU model           : Intel64 Family 6 Model 154 Stepping 3, GenuineIntel
+Logical cores       : 12   (os.cpu_count())
+Physical cores      : 8
+Python              : CPython 3.14.0
+NumPy               : 2.5.4
+Threading           : single thread (all BLAS/OpenMP vars pinned to 1)
+
+----------------------------------------------------------------------
+ARRAY GENERATION
+----------------------------------------------------------------------
+Elements            : 20,000,000
+dtype               : float64
+Memory footprint    : 152.59 MiB
+Seed                : 230103075  (Student ID)
+Distribution        : standard normal, mean 0.0, sigma 1.0
+Generation time     : 753.220 ms
+
+----------------------------------------------------------------------
+SERIAL COMPUTATION (single thread)
+----------------------------------------------------------------------
+Sum                 : 180.48201511232583
+Sum (17 s.f.)       : 180.48201511232583
+Mean                : 9.0241007556162919e-06
+Std dev (ddof=0)    : 1.0000009989463958
+Std dev (ddof=1)    : 1.0000010239464217
+
+Sum time            : 28.054 ms
+Std dev time        : 207.650 ms   (ddof=0)
+Std dev time        : 172.616 ms   (ddof=1)
+
+======================================================================
+SERIAL BASELINE WALL-CLOCK TIME : 235.705 ms
+  (sum + standard deviation, generation excluded)
+TOTAL INCLUDING GENERATION      : 988.925 ms
+THROUGHPUT                      : 84.85 M elements/sec
+======================================================================
