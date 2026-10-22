@@ -1,0 +1,88 @@
+==============================================================================
+TASK 1 — ROW-MAJOR vs. COLUMN-MAJOR PARALLEL CACHE TRAVERSAL
+==============================================================================
+Student ID           : 230103075
+Operating System     : Windows 11
+CPU model            : Intel64 Family 6 Model 154 Stepping 3, GenuineIntel
+LOGICAL CORE COUNT   : 12
+Physical core count  : 8
+Worker threads       : 8  (all physical cores)
+Matrix               : 8,000 x 8,000 float64
+Elements             : 64,000,000
+Memory footprint     : 512.0 MB (0.48 GiB)
+Seed                 : 230103075  (Student ID)
+Memory layout        : C-order (row-major), row stride 64,000 bytes
+Timing method        : 3 timed runs per mode, median reported
+
+------------------------------------------------------------------------------
+ALLOCATION
+------------------------------------------------------------------------------
+Allocated and filled : 996.0 ms
+C-contiguous         : True
+Reference sum        : -6804.0338507544802   (np.sum)
+
+==============================================================================
+RESULTS
+==============================================================================
+Mode                         |   Time (ms) |     GB/s |  ns/element
+-------------------------------------------------------------------
+A  Row-major, 1 thread       |      66.755 |     7.67 |      1.0430
+A  Row-major, 8 threads      |      20.064 |    25.52 |      0.3135
+B  Column-major, 1 thread    |     951.533 |     0.54 |     14.8677
+B  Column-major, 8 threads   |     238.603 |     2.15 |      3.7282
+-------------------------------------------------------------------
+
+Run spread, Mode A (8 threads): min 18.735 ms, max 22.230 ms
+Run spread, Mode B (8 threads): min 228.947 ms, max 255.945 ms
+
+Mode A sum : -6804.0338507546239   MATCHES
+Mode B sum : -6804.0338507548622   MATCHES
+Both modes add the same 64,000,000 numbers in a different order, so
+they agree to floating-point rounding rather than bit-for-bit.
+
+==============================================================================
+DELIVERABLE
+==============================================================================
+Student ID                 : 230103075
+Logical core count         : 12
+
+Mode A runtime (row-major) : 20.064 ms
+Mode B runtime (col-major) : 238.603 ms
+
+CACHE PENALTY FACTOR       : 11.8918x
+  (Mode B time / Mode A time, both on 8 threads)
+  single-threaded, for reference : 14.2541x
+==============================================================================
+
+------------------------------------------------------------------------------
+WHY
+------------------------------------------------------------------------------
+A cache line is 64 bytes, so it holds 8 float64 values.
+The hardware never loads one number; it loads the whole line.
+
+Mode A walks a row. Addresses advance by 8 bytes, so one line
+load serves the next 8 reads. Of the 64 bytes pulled from RAM, all
+64 are used. The hardware prefetcher also recognises the
+straight-line pattern and starts fetching ahead, so the core rarely
+waits at all.
+
+Mode B walks a column. Consecutive reads are one full row apart:
+8,000 elements x 8 bytes = 64,000 bytes. Every read
+therefore lands on a new cache line, and only 8 of the 64 bytes
+fetched are ever used before the line is evicted. That is 87.5% of
+the memory bandwidth spent moving bytes nobody reads, and it predicts
+a penalty of about 8x from bandwidth waste alone.
+
+Measured penalty was 11.89x.
+That is worse than the 8x bandwidth argument predicts, which is
+expected. The stride also defeats the prefetcher, and with a row
+stride of 64,000 bytes each access tends to fall in a
+different memory page, so the TLB misses as well. Cache misses,
+failed prefetch and TLB pressure compound.
+
+The practical rule: iterate in the order the array is stored. In C,
+C++, Python/NumPy and Java that is row-major, so the rightmost index
+belongs in the innermost loop. In Fortran, MATLAB and Julia the
+storage is column-major and the rule inverts. Getting this backwards
+costs an order of magnitude and changes nothing about the output.
+==============================================================================
