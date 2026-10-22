@@ -1,0 +1,110 @@
+==============================================================================
+TASK 5 — THE OVERHEAD CROSSOVER POINT
+==============================================================================
+Student ID          : 230103075
+Operating System    : Windows 11
+CPU model           : Intel64 Family 6 Model 154 Stepping 3, GenuineIntel
+Logical cores       : 12
+Workers             : 12  (all available cores)
+Kernel              : y[i] = 2.5 * x[i] + 1.25   (float64)
+Sizes tested        : [100, 1000, 10000, 100000, 1000000, 10000000]
+Timing method       : auto-sized batches, median of 5
+Parallel strategy   : persistent ThreadPoolExecutor (NumPy releases the GIL)
+
+------------------------------------------------------------------------------
+1. FIXED COST OF GOING PARALLEL
+------------------------------------------------------------------------------
+Dispatch 12 no-op tasks to a warm pool : 290.452 us
+Create a pool, dispatch, tear it down      : 1570.244 us
+
+This is the price paid before a single element is touched. The
+array has to be large enough that the work saved by splitting it
+exceeds this number, or parallelism is a net loss.
+
+------------------------------------------------------------------------------
+2. SERIAL vs PARALLEL ACROSS N
+------------------------------------------------------------------------------
+           N |   Serial (us) |  Parallel (us) |   Speedup |  Verdict
+--------------------------------------------------------------------
+         100 |         2.368 |        370.181 |   0.0064x |   slower
+       1,000 |         2.757 |        320.852 |   0.0086x |   slower
+      10,000 |         6.998 |        504.309 |   0.0139x |   slower
+     100,000 |        75.330 |        550.682 |   0.1368x |   slower
+   1,000,000 |      1623.139 |        987.341 |   1.6440x |   FASTER
+  10,000,000 |     16398.800 |       7473.240 |   2.1943x |   FASTER
+--------------------------------------------------------------------
+All parallel results matched the serial result exactly.
+
+==============================================================================
+3. CROSSOVER POINT
+==============================================================================
+Sign change found between N = 100,000 (speedup 0.1368x) and N = 1,000,000 (speedup 1.6440x).
+
+Refining inside that bracket with 12 geometric steps:
+
+           N |   Serial (us) |  Parallel (us) |   Speedup
+---------------------------------------------------------
+     100,000 |        60.598 |        572.857 |   0.1058x
+     123,284 |       115.225 |        611.965 |   0.1883x
+     151,991 |       155.635 |        658.608 |   0.2363x
+     187,381 |       210.700 |        732.288 |   0.2877x
+     231,012 |       231.177 |        725.779 |   0.3185x
+     284,803 |       281.918 |        731.417 |   0.3854x
+     351,119 |       408.185 |        695.241 |   0.5871x
+     432,876 |       499.026 |        695.561 |   0.7174x
+     533,669 |       629.885 |        767.523 |   0.8207x
+     657,933 |       895.527 |        835.230 |   1.0722x
+     811,130 |      1292.145 |        897.272 |   1.4401x
+   1,000,000 |      1721.351 |       1001.848 |   1.7182x
+---------------------------------------------------------
+
+==============================================================================
+ANSWER — THE CROSSOVER RANGE
+==============================================================================
+Multi-threading is SLOWER  at N = 533,669
+Multi-threading is FASTER  at N = 657,933  (speedup 1.0722x)
+
+CROSSOVER RANGE: 533,669 < N <= 657,933
+==============================================================================
+
+------------------------------------------------------------------------------
+4. PREDICTED CROSSOVER FROM FIRST PRINCIPLES
+------------------------------------------------------------------------------
+Per-element serial cost c  : 1.6399 ns (from N = 10,000,000)
+Dispatch overhead O        : 290.452 us
+Workers p                  : 12
+
+N* = O / (c * (1 - 1/p)) = 193,219 elements
+
+That model assumes the parallel part scales perfectly by p.
+It does not: this kernel reads 8 bytes and writes 8 bytes per
+element while doing two flops, so past the cache it is limited
+by memory bandwidth, not by core count. Real scaling is lower
+than p, which pushes the true crossover ABOVE this estimate.
+Treat N* as a lower bound.
+
+------------------------------------------------------------------------------
+5. ANALYSIS
+------------------------------------------------------------------------------
+At small N the array fits in cache and the whole kernel finishes
+in less time than it takes to hand work to the pool and collect
+the results. The thread pool is pure loss: the speedup column
+sits far below 1.0 and the parallel column is nearly flat,
+because what is being timed is dispatch, not arithmetic.
+
+As N grows the arithmetic starts to dominate that fixed cost. The
+parallel time grows roughly N*c/p against the serial N*c, so the
+two curves converge and then cross. Past the crossover the fixed
+overhead is amortised over enough elements to stop mattering.
+
+The gain does not keep growing with core count. y = a*x + b does
+two floating-point operations per 16 bytes moved, so once the
+array leaves cache every core is waiting on the same memory
+controller. That is a roofline ceiling, and it is why the speedup
+at the largest N is far below the worker count.
+
+Practical reading: splitting an array across cores is only worth
+it once the work per call clears the dispatch cost measured in
+section 1. Below that threshold the correct optimisation is to
+stay on one thread.
+==============================================================================
