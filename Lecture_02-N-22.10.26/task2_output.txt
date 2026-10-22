@@ -1,0 +1,79 @@
+==============================================================================
+TASK 2 — MULTI-CORE SCALING vs. AMDAHL'S LAW
+==============================================================================
+Student ID          : 230103075
+Operating System    : Windows 11
+CPU model           : Intel64 Family 6 Model 154 Stepping 3, GenuineIntel
+Logical cores       : 12   (os.cpu_count())
+Python / NumPy      : 3.14.0 / 2.5.4
+Parallel strategy   : ThreadPoolExecutor, one contiguous chunk per worker
+                      (NumPy releases the GIL inside np.sum)
+Worker counts tested: [1, 2, 4, 12, 24]
+Timing method       : 5 timed runs per count, median reported
+Amdahl assumption   : P = 0.95 parallelizable
+
+------------------------------------------------------------------------------
+ARRAY GENERATION
+------------------------------------------------------------------------------
+Elements            : 20,000,000   float64   (152.59 MiB)
+Seed                : 230103075  (Student ID)
+Generation time     : 894.592 ms
+Reference sum       : 180.48201511232583   (serial np.sum, Task 1)
+
+==============================================================================
+SCALING RESULTS
+==============================================================================
+ Cores |  Wall Time (ms) |   Speedup |  Amdahl Upper Bound |  Efficiency
+------------------------------------------------------------------------
+     1 |          22.867 |   1.0000x |             1.0000x |     100.00%
+     2 |           9.372 |   2.4398x |             1.9048x |     121.99%
+     4 |           6.117 |   3.7384x |             3.4783x |      93.46%
+    12 |           5.545 |   4.1237x |             7.7419x |      34.36%
+    24 |           5.721 |   3.9970x |            11.1628x |      16.65%
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+TIMING SPREAD AND NUMERICAL AGREEMENT
+------------------------------------------------------------------------------
+ Cores |   min (ms) |  median (ms) |   max (ms) |  rel. error vs serial
+------------------------------------------------------------------------------
+     1 |     22.512 |       22.867 |     23.545 |             0.000e+00
+     2 |      9.256 |        9.372 |      9.866 |             0.000e+00
+     4 |      5.331 |        6.117 |      7.991 |             0.000e+00
+    12 |      5.459 |        5.545 |      6.325 |             1.197e-14
+    24 |      5.444 |        5.721 |      6.591 |             8.819e-15
+
+Chunked summation adds the elements in a different order than the
+serial reduction, so the two results need not be bit-identical.
+The largest relative error is 1.197e-14, which is at
+machine-epsilon level and confirms the parallel sums are correct.
+
+==============================================================================
+ANALYSIS
+==============================================================================
+Serial baseline T(1)      : 22.867 ms
+Best measured speedup     : 4.1237x at 12 workers
+Amdahl bound at that count: 7.7419x  (P = 0.95)
+Gap to that bound         : +3.6182x (below the bound)
+Amdahl ceiling, p -> inf  : 20.0000x
+
+Measured speedup EXCEEDS the Amdahl bound at 2, 4 worker(s).
+That is not an error in the measurement. Amdahl's Law bounds a
+workload whose parallel fraction really is P; here P = 0.95 is an
+assumption the task hands down, not a measured property of this
+code. A chunked reduction is very close to fully parallel, so its
+true P is higher than 0.95 and it can beat a bound computed from
+an understated P. Splitting the array also gives each thread a
+smaller working set with better cache locality than the single
+thread streaming all 152.59 MiB on its own.
+
+Measured speedup falls SHORT of the bound at 12, 24 worker(s):
+  1. Summation is memory-bandwidth-bound, not compute-bound. Each
+     element is read once with almost no arithmetic per byte, so
+     the cores saturate the memory controller long before they run
+     out of work. That is a roofline limit Amdahl does not model.
+  2. Thread pool dispatch and the final reduction over the partial
+     sums are serial overhead that grows with the worker count.
+  3. Past 12 workers the pool oversubscribes the 12 logical
+     cores, so the extra threads only add scheduling cost.
+==============================================================================
