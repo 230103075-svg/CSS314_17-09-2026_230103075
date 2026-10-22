@@ -1,0 +1,93 @@
+==============================================================================
+TASK 3 — CACHE LINE CONTENTION (FALSE SHARING)
+==============================================================================
+Student ID          : 230103075
+Operating System    : Windows 11
+CPU model           : Intel64 Family 6 Model 154 Stepping 3, GenuineIntel
+Logical cores       : 12
+Physical cores      : 8
+Worker threads      : 8   (= physical core count)
+Increments / thread : 50,000,000
+Total increments    : 400,000,000
+Assumed cache line  : 64 bytes (8 x int64 slots per line)
+Timing method       : 3 timed runs per variant, median reported
+
+------------------------------------------------------------------------------
+1. WHY THE NAIVE LOOP CANNOT BE USED
+------------------------------------------------------------------------------
+`for _ in range(n): arr[i] += 1`, 50,000,000 iterations, 1 thread
+  wall time         : 0.005 ms
+  per iteration     : 0.0001 ns
+  counter value     : 50,000,000  (correct)
+
+A single load-modify-store to L1 cache costs roughly 1 ns. A figure
+far below that means the loop never ran: LLVM recognised the closed
+form and replaced 50 million increments with one addition. The result
+is still correct, but nothing was measured. Every benchmark below
+therefore uses a loop-carried dependency that forces a genuine load
+and store on each iteration.
+
+------------------------------------------------------------------------------
+2. BENCHMARK VARIANTS
+------------------------------------------------------------------------------
+Array base address  : 64-byte aligned (forced), slot 0 starts a cache line
+
+A  unpadded slots   : [0, 1, 2, 3, 4, 5, 6, 7]
+   byte offsets     : [0, 8, 16, 24, 32, 40, 48, 56]  -> spans 1 cache line(s)
+B  padded slots     : [0, 8, 16, 24, 32, 40, 48, 56]
+   byte offsets     : [0, 64, 128, 192, 256, 320, 384, 448]  -> one cache line each
+C  thread-local     : private counter, one write to the shared array
+
+==============================================================================
+3. RESULTS
+==============================================================================
+Variant                |  Wall Time (ms) | ns / increment |  vs fastest
+-----------------------------------------------------------------------
+A  Unpadded Shared     |         407.175 |         1.0179 |     2.4880x
+B  Padded Shared       |         213.927 |         0.5348 |     1.3072x
+C  Thread-Local        |         163.657 |         0.4091 |     1.0000x
+-----------------------------------------------------------------------
+
+Variant                |   min (ms) |  median (ms) |   max (ms) |    total counted
+------------------------------------------------------------------------------
+A  Unpadded Shared     |    391.671 |      407.175 |    408.153 |      400,000,000
+B  Padded Shared       |    186.054 |      213.927 |    216.181 |      400,000,000
+C  Thread-Local        |    161.188 |      163.657 |    174.521 |      400,000,000
+
+==============================================================================
+4. EXECUTION RATIO — THE DELIVERABLE
+==============================================================================
+Unpadded Shared / Padded Shared : 1.9033x
+Unpadded Shared / Thread-Local  : 2.4880x
+Time lost to false sharing      : +193.248 ms (+90.33%)
+
+------------------------------------------------------------------------------
+5. ANALYSIS
+------------------------------------------------------------------------------
+All three variants perform exactly the same arithmetic and each
+thread touches only its own counter. There is no lock, no logical
+sharing and no race. The only difference between A and B is the
+distance in bytes between the counters.
+
+Cache coherence works on whole cache lines, not on variables. In A
+all counters sit inside one 64-byte line, so under MESI each write
+must take that line into the Modified state, which invalidates every
+other core's copy. The next core to write takes a HITM miss and pulls
+the line back. The line ping-pongs between cores for the whole run
+even though no core ever wants another core's data. That is false
+sharing: the hardware shares a line, the program shares nothing.
+
+B spaces the counters 64 bytes apart, so each core owns its own line
+outright and never has to give it up. C goes further and keeps the
+counter in a private buffer, touching shared memory once per thread.
+
+Measured here: the unpadded version is 1.90x slower,
+which is the coherence traffic made visible.
+
+Practical remedies, in the order one should reach for them:
+  1. Keep the hot counter thread-local and publish once (variant C).
+  2. Pad shared slots to a full cache line: alignas(64) in C++,
+     @Contended in Java, CachePadded in Rust, _ [56]byte in Go.
+  3. Use a reduction instead of a shared array when the final value
+     is all that matters.
+==============================================================================
