@@ -1,0 +1,84 @@
+==============================================================================
+TASK 4 — HOST-TO-DEVICE TRANSFER PENALTY (CPU / IPC BRANCH)
+==============================================================================
+Student ID           : 230103075
+Operating System     : Windows 11
+CPU model            : Intel64 Family 6 Model 154 Stepping 3, GenuineIntel
+Logical cores        : 12
+Python               : 3.14.0
+Start method         : spawn
+Sizes                : [100000, 1000000, 10000000]  float64
+Timing method        : 5 timed transfers each, median reported
+
+GPU branch not applicable: no CUDA device on this machine. The CPU
+branch measures the process boundary instead of the PCIe bus.
+
+Worker process started and warmed up.
+
+==============================================================================
+TRANSFER OVERHEAD
+==============================================================================
+           N |      Size |  Path A (ms) |  Path B1 (ms) |  Path B2 (ms) |     A/B1 |      A/B2
+----------------------------------------------------------------------------------------------
+     100,000 |     0.8 MB |        3.131 |         0.327 |         0.191 |    9.58x |    16.42x
+   1,000,000 |     8.0 MB |       31.315 |         1.199 |         0.382 |   26.12x |    81.96x
+  10,000,000 |    80.0 MB |      297.366 |         9.038 |         0.369 |   32.90x |   806.31x
+----------------------------------------------------------------------------------------------
+  Path A  = Queue + pickle serialisation
+  Path B1 = shared memory, including the copy into the shared block
+  Path B2 = shared memory, data already resident (true zero-copy)
+
+------------------------------------------------------------------------------
+EFFECTIVE THROUGHPUT
+------------------------------------------------------------------------------
+           N |       Path A |      Path B1 |        Path B2
+-----------------------------------------------------------
+     100,000 |     0.26 GB/s |     2.45 GB/s |       4.20 GB/s
+   1,000,000 |     0.26 GB/s |     6.67 GB/s |      20.94 GB/s
+  10,000,000 |     0.27 GB/s |     8.85 GB/s |     216.92 GB/s
+-----------------------------------------------------------
+  Path B2's figure is notional: it divides the payload size by a time
+  in which no payload actually moved. A number far above what the
+  memory bus can do is the proof that nothing was copied, not a
+  measurement of copying done quickly.
+
+------------------------------------------------------------------------------
+RUN SPREAD AND CORRECTNESS
+------------------------------------------------------------------------------
+N =      100,000  A [2.910, 3.222]  B1 [0.295, 0.488]  B2 [0.178, 0.242]  checksum OK
+N =    1,000,000  A [26.273, 32.968]  B1 [0.842, 1.594]  B2 [0.356, 0.537]  checksum OK
+N =   10,000,000  A [285.086, 306.400]  B1 [7.335, 12.681]  B2 [0.256, 0.465]  checksum OK
+
+==============================================================================
+ANALYSIS
+==============================================================================
+Path A moves data by rewriting it. pickle walks the array and
+produces a byte stream, the operating system copies that stream
+through a pipe, and the child allocates a fresh array and fills it.
+The payload is touched at least three times and exists twice in RAM
+at the peak. The cost therefore grows with N, and grows steeply:
+at N = 100,000 path A takes 3.131 ms, at N = 10,000,000 it takes 297.366 ms.
+
+Path B moves nothing. The region is mapped into both address
+spaces, so the child reads the very same physical pages the parent
+wrote. What travels through the queue is the name of the region, a
+handful of bytes, and that is true at every N. Hence B2 is roughly
+flat: 0.191 ms at N = 100,000 against 0.369 ms at N = 10,000,000.
+
+B1 sits between them. It still performs one memcpy into the shared
+block, so it scales with N, but a single memcpy is far cheaper than
+serialise-pipe-deserialise. B1 is the number to quote when the
+producer hands over an ordinary array; B2 is what a real pipeline
+achieves by allocating into shared memory in the first place and
+never making the copy at all.
+
+At the largest size, shared memory is 32.9x faster including the copy
+and 806x faster without it.
+
+This is the same lesson as the GPU branch of the task. There the
+bottleneck is the PCIe bus and the remedy is to keep data resident
+on the device across several kernels instead of copying it back and
+forth. Here the boundary is between processes and the remedy is to
+keep data in a shared mapping instead of serialising it. In both
+cases the arithmetic is not the problem: moving the bytes is.
+==============================================================================
