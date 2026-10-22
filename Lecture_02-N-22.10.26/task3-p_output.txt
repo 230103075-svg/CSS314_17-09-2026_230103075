@@ -1,0 +1,77 @@
+==============================================================================
+TASK 3 — PREFIX SCAN (STEP EFFICIENCY vs. WORK EFFICIENCY)
+==============================================================================
+Student ID           : 230103075
+Operating System     : Windows 11
+CPU model            : Intel64 Family 6 Model 154 Stepping 3, GenuineIntel
+Logical cores        : 12
+Physical cores       : 8
+Workers              : 12
+Elements             : 2,000,000  int64, values 1..10
+Seed                 : 230103075  (Student ID)
+Timing method        : 5 timed runs each, median reported
+
+Input sum            : 11,005,024  (the value the last scan element must hold)
+Input min / max      : 1 / 10
+
+------------------------------------------------------------------------------
+CHUNK LAYOUT
+------------------------------------------------------------------------------
+Chunks               : 12
+Elements per chunk   : 166,667 (last chunk 166,666)
+Serial reduction     : 12 values — 0.00060% of the array
+
+------------------------------------------------------------------------------
+VERIFICATION
+------------------------------------------------------------------------------
+serial_output[-1]    : 11,005,024
+parallel_output[-1]  : 11,005,024
+sum(input)           : 11,005,024
+Required assertion   : parallel_output[-1] == serial_output[-1]
+  -> HOLDS
+Stronger check, all 2,000,000 elements identical: YES
+
+==============================================================================
+RESULTS
+==============================================================================
+  Serial Time (ms) |   Parallel Time (ms) |   Speedup |  Verification
+---------------------------------------------------------------------
+             3.033 |                3.678 |   0.8246x |          PASS
+---------------------------------------------------------------------
+
+Serial   spread      : min 2.775 ms, max 6.389 ms
+Parallel spread      : min 2.902 ms, max 5.056 ms
+
+------------------------------------------------------------------------------
+STEP EFFICIENCY vs WORK EFFICIENCY
+------------------------------------------------------------------------------
+Serial additions     : 2,000,000        (one pass, optimal work)
+Parallel additions   : 4,000,000        (sum pass + scan pass)
+Work ratio           : 2.00x
+Ceiling from that    : 12 workers / 2 passes = 6.00x maximum speedup
+Measured             : 0.8246x
+
+The parallel version is SLOWER than the serial one. That is a
+real result, not a bug: this scan is short enough that doubling
+the work and paying the dispatch cost outweighs splitting it.
+The parallel scan wins on larger inputs or more cores; below the
+crossover the correct choice is the serial scan.
+
+The serial scan is WORK-efficient: N additions, the theoretical
+minimum. But it is not STEP-efficient at all, because every one of
+those N additions waits for the previous one. Its critical path is N
+steps long, so no number of cores can help it.
+
+The chunked scan shortens the critical path to roughly N/p plus the
+12-element reduction, at the price of doing 2N additions
+instead of N. That is the trade in the task's title. The classic
+textbook pair makes the same point more sharply: Hillis-Steele scan
+finishes in O(log n) steps but performs O(n log n) work, while
+Blelloch scan keeps work at O(n) and takes 2 log n steps. One buys
+latency with work, the other buys work with latency.
+
+Note how little communication the chunked version needs: one integer
+per chunk, 12 numbers total out of 2,000,000. The dependency that
+makes prefix sum look inherently sequential turns out to bind only
+inside a chunk; across chunks it compresses to a single offset.
+==============================================================================
