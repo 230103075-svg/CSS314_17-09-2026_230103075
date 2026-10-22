@@ -1,0 +1,90 @@
+==============================================================================
+TASK 7 — ARITHMETIC INTENSITY vs. MEMORY BOTTLENECKS
+==============================================================================
+Student ID          : 230103075
+Operating System    : Windows 11
+CPU model           : Intel64 Family 6 Model 154 Stepping 3, GenuineIntel
+Logical cores       : 12
+Core counts tested  : [1, 2, 12]
+Elements            : 30,000,000   float64
+Array size          : 240.0 MB each (A, B and one scratch buffer = 0.72 GB total)
+Timing method       : 3 timed runs per point, median reported
+Python / NumPy      : 3.14.0 / 2.5.4
+
+Kernel A (memory-bound) : B[i] = A[i]
+Kernel B (compute-bound): B[i] = sin(A[i]) * cos(A[i]) + tan(A[i])
+
+------------------------------------------------------------------------------
+ALLOCATION
+------------------------------------------------------------------------------
+Allocated and filled in 484.4 ms
+
+==============================================================================
+KERNEL A — MEMORY-BOUND   B[i] = A[i]
+==============================================================================
+ Cores |   Time (ms) |   Speedup |  Efficiency |     Bandwidth
+--------------------------------------------------------------
+     1 |      22.296 |   1.0000x |     100.00% |     21.53 GB/s
+     2 |      12.964 |   1.7199x |      85.99% |     37.03 GB/s
+    12 |      10.087 |   2.2104x |      18.42% |     47.59 GB/s
+--------------------------------------------------------------
+
+==============================================================================
+KERNEL B — COMPUTE-BOUND  B[i] = sin(A)*cos(A) + tan(A)
+==============================================================================
+ Cores |   Time (ms) |   Speedup |  Efficiency |     Bandwidth
+--------------------------------------------------------------
+     1 |     845.235 |   1.0000x |     100.00% |      0.57 GB/s
+     2 |     409.652 |   2.0633x |     103.16% |      1.17 GB/s
+    12 |     118.810 |   7.1142x |      59.28% |      4.04 GB/s
+--------------------------------------------------------------
+
+==============================================================================
+VERDICT — WHICH KERNEL SATURATED THE MEMORY CHANNEL
+==============================================================================
+Kernel A efficiency at 12 cores : 18.42%
+Kernel B efficiency at 12 cores : 59.28%
+Kernel A bandwidth, 1 core          : 21.53 GB/s
+Kernel A bandwidth, 12 cores        : 47.59 GB/s
+Kernel A bandwidth growth           : 2.21x for 12x the cores
+
+>>> KERNEL A (the vector copy) STALLED IN SCALING.
+>>> Its bottleneck is memory channel saturation, not the CPU.
+
+Kernel A does zero arithmetic per element, so every core spends
+its entire time waiting on the memory bus. One core already pulls
+21.53 GB/s; adding 11 more only reaches 47.59 GB/s, because
+they are all queueing at the same memory controller. The extra
+cores are idle inside a stall, which is why efficiency fell to
+18.42%.
+
+Kernel B moves exactly the same 16 bytes per element, but each
+element also costs three transcendental evaluations. That work
+happens in the core's own execution units, which are private and
+therefore scale: efficiency held at 59.28%.
+
+------------------------------------------------------------------------------
+ARITHMETIC INTENSITY — WHY THE TWO DIFFER
+------------------------------------------------------------------------------
+Arithmetic intensity is flops performed per byte moved from memory.
+It is the number that decides which ceiling a kernel hits.
+
+  Kernel A : 0 flops / 16 bytes = 0.00 flops per byte
+             Nothing is computed. The kernel is a pure bandwidth test
+             and sits on the sloped part of the roofline, where
+             performance is bandwidth x intensity and nothing else.
+
+  Kernel B : ~3 transcendental calls / 16 bytes
+             sin, cos and tan each cost on the order of tens to
+             hundreds of cycles. Intensity is high enough that the
+             kernel sits on the flat part of the roofline, limited by
+             the cores' arithmetic throughput, which grows with core
+             count because each core has its own execution units.
+
+The memory controller is shared; execution units are not. That is the
+whole reason the two kernels scale differently, and it is why Amdahl's
+Law alone cannot predict parallel performance: it models serial
+fractions, not contention for a shared resource.
+
+Compute-kernel correctness spot-check: PASSED
+==============================================================================
