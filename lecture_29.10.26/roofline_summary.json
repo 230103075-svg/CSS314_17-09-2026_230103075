@@ -1,0 +1,37 @@
+{
+  "kernel": "5-point Jacobi stencil, out = 0.25 * (N + S + W + E)",
+  "N_salted": 1408,
+  "sweeps_per_run": 113,
+  "flops_per_point": 4,
+  "arithmetic_intensity_flop_per_byte": {
+    "fused_with_write_allocate": 0.16666666666666666,
+    "fused_optimistic": 0.25,
+    "numpy_4pass_implementation": 0.041666666666666664
+  },
+  "working_set_bytes": 31719424,
+  "l2_cache_bytes": 2097152,
+  "l3_cache_bytes": 12582912,
+  "working_set_exceeds_l3": true,
+  "measured_bandwidth_gbs": 44.52948396196843,
+  "bandwidth_method": "single-process numpy copy of 256 MB, 24 B/element",
+  "peak_dp_gflops_estimate": 319.488,
+  "peak_basis": "8 cores x 2496 MHz x 16 DP FLOP/cycle (AVX2 FMA)",
+  "ridge_point_flop_per_byte": 7.174751907587051,
+  "achieved_gflops_at_max_P": 3.014211598951984,
+  "strong_speedup": {
+    "1": 1.0,
+    "2": 1.722221637146172,
+    "4": 2.892196928554883,
+    "8": 3.529088279044839
+  },
+  "weak_gustafson_scaled_speedup": {
+    "1": 1.0,
+    "2": 1.5793606128231916,
+    "4": 3.102857261546661,
+    "8": 3.107527997262735
+  },
+  "amdahl_fitted_serial_fraction": 0.15886289877956797,
+  "amdahl_max_speedup": 6.29473594956593,
+  "regime": "MEMORY-BANDWIDTH BOUND",
+  "conclusion": "AI of 0.250 FLOP/byte (at best) sits far left of the ridge point 7.17 FLOP/byte, and the 32 MB working set exceeds the 13 MB L3, so every sweep streams from DRAM. The kernel is limited by memory bandwidth, not arithmetic: adding cores helps only until the shared memory channels saturate, which is what caps the strong-scaling speedup."
+}
