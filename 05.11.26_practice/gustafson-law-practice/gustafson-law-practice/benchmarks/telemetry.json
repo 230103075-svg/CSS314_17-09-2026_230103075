@@ -1,0 +1,121 @@
+{
+  "cpu_model": "12th Gen Intel(R) Core(TM) i5-12450H",
+  "microarchitecture": "Alder Lake (P/H mobile)",
+  "base_frequency_mhz": 2496,
+  "physical_cores": 8,
+  "logical_threads": 12,
+  "cores_with_smt": 4,
+  "hybrid_topology": true,
+  "packages": 1,
+  "numa_nodes": 1,
+  "l1d_bytes": 49152,
+  "l2_bytes": 2097152,
+  "l3_bytes": 12582912,
+  "cache_line_bytes": 64,
+  "cache_detail": [
+    [
+      1,
+      "Data",
+      32768
+    ],
+    [
+      1,
+      "Data",
+      49152
+    ],
+    [
+      1,
+      "Instruction",
+      32768
+    ],
+    [
+      1,
+      "Instruction",
+      65536
+    ],
+    [
+      2,
+      "Unified",
+      1310720
+    ],
+    [
+      2,
+      "Unified",
+      2097152
+    ],
+    [
+      3,
+      "Unified",
+      12582912
+    ]
+  ],
+  "memory_total_bytes": 16890716160,
+  "memory_modules": [
+    {
+      "Capacity": 2147483648,
+      "Speed": 4267,
+      "ConfiguredClockSpeed": 4267,
+      "DeviceLocator": "Controller0-ChannelA",
+      "BankLabel": "BANK 0"
+    },
+    {
+      "Capacity": 2147483648,
+      "Speed": 4267,
+      "ConfiguredClockSpeed": 4267,
+      "DeviceLocator": "Controller0-ChannelB",
+      "BankLabel": "BANK 1"
+    },
+    {
+      "Capacity": 2147483648,
+      "Speed": 4267,
+      "ConfiguredClockSpeed": 4267,
+      "DeviceLocator": "Controller0-ChannelC",
+      "BankLabel": "BANK 2"
+    },
+    {
+      "Capacity": 2147483648,
+      "Speed": 4267,
+      "ConfiguredClockSpeed": 4267,
+      "DeviceLocator": "Controller0-ChannelD",
+      "BankLabel": "BANK 3"
+    },
+    {
+      "Capacity": 2147483648,
+      "Speed": 4267,
+      "ConfiguredClockSpeed": 4267,
+      "DeviceLocator": "Controller1-ChannelA",
+      "BankLabel": "BANK 0"
+    },
+    {
+      "Capacity": 2147483648,
+      "Speed": 4267,
+      "ConfiguredClockSpeed": 4267,
+      "DeviceLocator": "Controller1-ChannelB",
+      "BankLabel": "BANK 1"
+    },
+    {
+      "Capacity": 2147483648,
+      "Speed": 4267,
+      "ConfiguredClockSpeed": 4267,
+      "DeviceLocator": "Controller1-ChannelC",
+      "BankLabel": "BANK 2"
+    },
+    {
+      "Capacity": 2147483648,
+      "Speed": 4267,
+      "ConfiguredClockSpeed": 4267,
+      "DeviceLocator": "Controller1-ChannelD",
+      "BankLabel": "BANK 3"
+    }
+  ],
+  "os": "Windows-11-10.0.26200-SP0",
+  "python": "3.14.0",
+  "numpy": "2.5.4",
+  "benchmark": {
+    "K_points_per_worker": 6000000,
+    "block": 65536,
+    "runs": 5,
+    "h": 1e-06
+  },
+  "errors": {}
+}
