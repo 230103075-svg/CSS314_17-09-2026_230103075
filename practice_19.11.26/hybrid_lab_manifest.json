@@ -1,0 +1,243 @@
+{
+  "github_username": "230103075-svg",
+  "instance_seed": 9391525041995573038,
+  "seed_digest_sha256": "825566446b54e72e04dcb11e7708ac93a290d362fef1323bdc6c83abd16dec71",
+  "gpu_uuid": "GPU-739faca5-460a-0a2c-9cab-0a062f9bab9a",
+  "gpu": "Tesla T4, 7.5, 15360 MiB",
+  "cpu_model": "Intel(R) Xeon(R) CPU @ 2.00GHz",
+  "cpu_signature": "x86_64::2",
+  "cpu_line_bytes": 64,
+  "mpi": {
+    "size": 4,
+    "dims": [
+      2,
+      2
+    ],
+    "periods": [
+      false,
+      false
+    ],
+    "topology": [
+      {
+        "rank": 0,
+        "coords": [
+          0,
+          0
+        ],
+        "up": -2,
+        "down": 2,
+        "left": -2,
+        "right": 1
+      },
+      {
+        "rank": 1,
+        "coords": [
+          0,
+          1
+        ],
+        "up": -2,
+        "down": 3,
+        "left": 0,
+        "right": -2
+      },
+      {
+        "rank": 2,
+        "coords": [
+          1,
+          0
+        ],
+        "up": 0,
+        "down": -2,
+        "left": -2,
+        "right": 3
+      },
+      {
+        "rank": 3,
+        "coords": [
+          1,
+          1
+        ],
+        "up": 1,
+        "down": -2,
+        "left": 2,
+        "right": -2
+      }
+    ],
+    "library": "Open MPI v4.1.6, package: Debian OpenMPI, ident: 4.1.6, repo rev: v4.1.6, Sep 30, 2023\u0000"
+  },
+  "grid": {
+    "global_nx": 512,
+    "global_ny": 512,
+    "local_n": 256,
+    "padded_n": 258,
+    "dx": 0.001949317738791423,
+    "tile": 16,
+    "shared_tile": 18
+  },
+  "physics": {
+    "kappa_max": 0.9559021903680691,
+    "dt_max": 9.937835913169582e-07,
+    "dt": 8.944052321852624e-07,
+    "cfl_ratio": 0.9,
+    "cfl_ok": true,
+    "lambda_damp": 0.15,
+    "steps": 300,
+    "gauss_center": [
+      0.35426081223499983,
+      0.6445705719340643
+    ]
+  },
+  "energy": {
+    "serialized": {
+      "0": 0.2631714304147173,
+      "100": 0.2629019657067472,
+      "200": 0.26263679562884457,
+      "300": 0.26237564356509974
+    },
+    "overlapped": {
+      "0": 0.2631714304147173,
+      "100": 0.2629019657067472,
+      "200": 0.26263679562884457,
+      "300": 0.26237564356509974
+    },
+    "max_relative_difference": 0.0,
+    "ok": true
+  },
+  "parity": {
+    "max_diff": 0.0,
+    "per_rank": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "ok": true
+  },
+  "timing": {
+    "gpu_serialized_ms": 1404.4413930000132,
+    "gpu_overlapped_ms": 1523.9709309999796,
+    "overlap_speedup": 0.9215670485777999
+  },
+  "ptx_audit": {
+    "st.shared.f64": 5,
+    "ld.shared.f64": 5,
+    "bar.sync": 1,
+    "ld.global.f64": 11,
+    "st.global.f64": 1,
+    "ptx_lines": 342
+  },
+  "llvm_audit": {
+    "load_i64_total": 11,
+    "store_i64_total": 6,
+    "volatile_ops": 0,
+    "atomicrmw_ops": 0,
+    "loop_blocks_with_load_and_store": 2,
+    "register_hoisting_prevented": true
+  },
+  "shm": {
+    "iters_per_rank": 40000000,
+    "reps": 3,
+    "base_mod64": 0,
+    "base_mod128": 64,
+    "strides": {
+      "1": {
+        "stride_slots": 1,
+        "spacing_bytes": 8,
+        "slot_indices": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "cpu_line_index": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "gpu_sector_index": [
+          2,
+          2,
+          2,
+          2
+        ],
+        "wall_ms_per_rep_max_over_ranks": [
+          387.36876500001927,
+          340.62663800000337,
+          307.05414100000894
+        ],
+        "wall_ms_best": 307.05414100000894,
+        "ns_per_update": 7.6763535250002235,
+        "counter_check_ok": true
+      },
+      "8": {
+        "stride_slots": 8,
+        "spacing_bytes": 64,
+        "slot_indices": [
+          0,
+          8,
+          16,
+          24
+        ],
+        "cpu_line_index": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "gpu_sector_index": [
+          2,
+          4,
+          6,
+          8
+        ],
+        "wall_ms_per_rep_max_over_ranks": [
+          307.2745849999876,
+          257.51933600000143,
+          293.6748179999995
+        ],
+        "wall_ms_best": 257.51933600000143,
+        "ns_per_update": 6.437983400000036,
+        "counter_check_ok": true
+      },
+      "16": {
+        "stride_slots": 16,
+        "spacing_bytes": 128,
+        "slot_indices": [
+          0,
+          16,
+          32,
+          48
+        ],
+        "cpu_line_index": [
+          0,
+          2,
+          4,
+          6
+        ],
+        "gpu_sector_index": [
+          2,
+          6,
+          10,
+          14
+        ],
+        "wall_ms_per_rep_max_over_ranks": [
+          283.7391040000057,
+          249.35753100001534,
+          301.2634279999986
+        ],
+        "wall_ms_best": 249.35753100001534,
+        "ns_per_update": 6.2339382750003836,
+        "counter_check_ok": true
+      }
+    },
+    "false_sharing_slowdown_s1_over_s8": 1.1923537306728968,
+    "s16_over_s8": 0.9683060498416863
+  },
+  "versions": {
+    "python": "3.13.16",
+    "numpy": "2.4.6",
+    "numba": "0.64.0",
+    "mpi4py": "4.1.2"
+  }
+}
