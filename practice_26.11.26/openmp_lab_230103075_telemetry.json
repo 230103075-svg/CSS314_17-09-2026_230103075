@@ -1,0 +1,147 @@
+{
+  "task1": {
+    "race_runs_8_threads": [
+      {
+        "lost_counts": 3624908,
+        "max_count_discrepancy": 76284,
+        "max_weight_discrepancy": 104841.76263209886
+      },
+      {
+        "lost_counts": 3597172,
+        "max_count_discrepancy": 75509,
+        "max_weight_discrepancy": 103908.4207477873
+      },
+      {
+        "lost_counts": 3646853,
+        "max_count_discrepancy": 76604,
+        "max_weight_discrepancy": 105175.06709431674
+      },
+      {
+        "lost_counts": 3694534,
+        "max_count_discrepancy": 77534,
+        "max_weight_discrepancy": 106801.58444988015
+      },
+      {
+        "lost_counts": 3562625,
+        "max_count_discrepancy": 74706,
+        "max_weight_discrepancy": 103541.18867784468
+      },
+      {
+        "lost_counts": 3558169,
+        "max_count_discrepancy": 74826,
+        "max_weight_discrepancy": 102699.61911629251
+      },
+      {
+        "lost_counts": 3585017,
+        "max_count_discrepancy": 75200,
+        "max_weight_discrepancy": 103589.22634897692
+      },
+      {
+        "lost_counts": 3679837,
+        "max_count_discrepancy": 77292,
+        "max_weight_discrepancy": 106084.03982896102
+      },
+      {
+        "lost_counts": 3699772,
+        "max_count_discrepancy": 77759,
+        "max_weight_discrepancy": 106645.82860125977
+      },
+      {
+        "lost_counts": 3680065,
+        "max_count_discrepancy": 77285,
+        "max_weight_discrepancy": 106301.16405832465
+      }
+    ],
+    "total_lost_updates": 36328952
+  },
+  "task2": {
+    "1": {
+      "unpadded_s": 0.07656479999423027,
+      "padded_s": 0.07032110000727698,
+      "ratio": 1.088788428882756
+    },
+    "2": {
+      "unpadded_s": 0.0696771000220906,
+      "padded_s": 0.06984909999300726,
+      "ratio": 0.9975375492177583
+    },
+    "4": {
+      "unpadded_s": 0.07043389999307692,
+      "padded_s": 0.07073179999133572,
+      "ratio": 0.9957883158876871
+    },
+    "8": {
+      "unpadded_s": 0.10350930001004599,
+      "padded_s": 0.09211640001740307,
+      "ratio": 1.1236793881490215
+    }
+  },
+  "task3": {
+    "1": {
+      "static_s": 0.571037299989257,
+      "balanced_s": 0.3218027999973856,
+      "imbalance_static": 1.0,
+      "imbalance_balanced": 1.0,
+      "active_static": 1,
+      "active_balanced": 1,
+      "max_abs_diff": 0.0
+    },
+    "2": {
+      "static_s": 0.5534192999766674,
+      "balanced_s": 0.7396164999809116,
+      "imbalance_static": 1.0008537845455294,
+      "imbalance_balanced": 1.0016674981509988,
+      "active_static": 2,
+      "active_balanced": 2,
+      "max_abs_diff": 0.0
+    },
+    "4": {
+      "static_s": 0.48183519998565316,
+      "balanced_s": 0.5450401999987662,
+      "imbalance_static": 1.0012809104556257,
+      "imbalance_balanced": 1.003356096195128,
+      "active_static": 4,
+      "active_balanced": 4,
+      "max_abs_diff": 0.0
+    },
+    "8": {
+      "static_s": 0.5504470999876503,
+      "balanced_s": 0.31972400000086054,
+      "imbalance_static": 1.0134304635502807,
+      "imbalance_balanced": 1.006743513160351,
+      "active_static": 8,
+      "active_balanced": 8,
+      "max_abs_diff": 0.0
+    }
+  },
+  "task4": {
+    "1": {
+      "seconds": 0.6945767000142951,
+      "final_max_delta": 0.051494744852831786,
+      "first_max_delta": 112.52887611130238,
+      "max_abs_diff_vs_1": 0.0,
+      "speedup": 1.0
+    },
+    "2": {
+      "seconds": 0.7911806000047363,
+      "final_max_delta": 0.051494744852831786,
+      "first_max_delta": 112.52887611130238,
+      "max_abs_diff_vs_1": 0.0,
+      "speedup": 0.8778990536549266
+    },
+    "4": {
+      "seconds": 1.4502960999961942,
+      "final_max_delta": 0.051494744852831786,
+      "first_max_delta": 112.52887611130238,
+      "max_abs_diff_vs_1": 0.0,
+      "speedup": 0.47892061491175336
+    },
+    "8": {
+      "seconds": 1.4745320999936666,
+      "final_max_delta": 0.051494744852831786,
+      "first_max_delta": 112.52887611130238,
+      "max_abs_diff_vs_1": 0.0,
+      "speedup": 0.47104888392546923
+    }
+  }
+}
